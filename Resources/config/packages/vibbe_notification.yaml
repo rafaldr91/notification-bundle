@@ -1,0 +1,5 @@
+vibbe_notification:
+  mail_driver: 'none'
+  swift_mailer_service: ''
+  mail_driver_custom: ''
+
