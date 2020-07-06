@@ -17,16 +17,54 @@ class NotificationService
     /**
      * @param NotificationModel|NotificationModel[] $notifications
      * @param string|string[] $viaChannels
-     * @param Notifiable $notifiable
+     * @param Notifiable|Notifiable[] $notifiable
+     *
+     * @return mixed
      */
-    public function send($notifications, $viaChannels, Notifiable $notifiable){
+    public function send($notifications, $viaChannels, $notifiable)
+    {
         $notifications = (is_array($notifications)) ? $notifications: [$notifications];
-        $viaChannels = (is_array($viaChannels)) ? $viaChannels : [$viaChannels];
+        $viaChannels   = (is_array($viaChannels)) ? $viaChannels : [$viaChannels];
+        $notifiable    = (is_array($notifiable)) ? $notifiable : [$notifiable];
 
-        foreach ($viaChannels as $viaChannel) {
-            $channelInstance = $this->getChannel($viaChannel);
-            $channelInstance->notify($notifiable,$notifications);
+        /** @var NotificationModel $notificationModel */
+        foreach ($notifications as $notificationModel) {
+            foreach ($viaChannels as $viaChannel) {
+                if(!$notificationModel->isSupportChannelMapper($viaChannel))
+                {
+                    continue;
+                }
+
+                $channelInstance = $this->getChannel($viaChannel);
+                $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel));
+
+                foreach ($messages as $message) {
+                    $channelInstance->notify($message);
+                }
+
+            }
         }
+
+    }
+
+    /**
+     * @param NotificationModel $notificationModel
+     * @param Notifiable[] $notifiableArray
+     * @param string
+     * @return mixed[] $messages
+     */
+    private function prepareMessages(NotificationModel $notificationModel, &$notifiableArray, string $transformerName): array
+    {
+        $messages = [];
+        foreach ($notifiableArray as $notifiable) {
+            $messages[] = $notificationModel->{$transformerName}($notifiable);
+        }
+        return $messages;
+    }
+
+    private function getTransformerHandlerName(string $channelName): string
+    {
+        return 'to'.ucfirst($channelName);
     }
 
     private function getChannel(string $name): ChannelInterface
@@ -34,7 +72,7 @@ class NotificationService
         return $this->availableChannels[$name] ?? new NullChannel();
     }
 
-    public function addChannel(string $name, ChannelInterface $channel)
+    public function registerChannel(string $name, ChannelInterface $channel): self
     {
         $this->availableChannels[$name] = $channel;
     }

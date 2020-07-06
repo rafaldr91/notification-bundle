@@ -8,8 +8,10 @@ use Vibbe\Notification\Model\NotificationModel;
 
 interface ChannelInterface
 {
-    public function alias():string;
-
-    public function notify(Notifiable $notifiable, NotificationModel $notificationModel);
+    /**
+     * @param $simpleMessage
+     * @return mixed
+     */
+    public function notify($simpleMessage);
 
 }

@@ -21,12 +21,17 @@ class NotificationModel implements NotificationInterface
     /**
      * Call
      * @param $name
-     * @param Notifiable $arguments
+     * @param Notifiable $notifiable
      */
-    public function __call($name, $arguments)
+    public function __call($name, $notifiable)
     {
         $name = str_replace('to','',$name);
-        $this->$this->channelMapper[$name]($arguments);
+        $this->$this->channelMapper[$name]($notifiable);
+    }
+
+    public function isSupportChannelMapper(string $name): bool
+    {
+        return isset($this->channelMapper[$name]);
     }
 
     /**
@@ -50,5 +55,10 @@ class NotificationModel implements NotificationInterface
     public function getParametersToOverride(): array
     {
         return $this->parameters;
+    }
+
+    public function overrideParameters(array $parameters)
+    {
+        $this->parameters = $parameters;
     }
 }
