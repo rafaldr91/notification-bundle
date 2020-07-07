@@ -27,10 +27,14 @@ class NotificationService
      */
     private $container;
 
-    public function __construct(MessageBusInterface $messageBus, ContainerInterface $container)
+    public function __construct(MessageBusInterface $messageBus)
     {
         $this->messageBus = $messageBus;
-        $this->container = $container;
+    }
+
+    public function changeMessageBus(MessageBusInterface $messageBus)
+    {
+        $this->messageBus = $messageBus;
     }
 
     /**
