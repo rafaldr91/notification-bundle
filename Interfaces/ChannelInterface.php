@@ -4,14 +4,10 @@
 namespace Vibbe\Notification\Interfaces;
 
 
+use Symfony\Component\Messenger\MessageBusInterface;
 use Vibbe\Notification\Model\NotificationModel;
 
-interface ChannelInterface
+interface ChannelInterface extends MessageBusInterface
 {
-    /**
-     * @param $simpleMessage
-     * @return mixed
-     */
-    public function notify($simpleMessage);
 
 }

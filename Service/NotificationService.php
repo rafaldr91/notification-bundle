@@ -4,15 +4,36 @@
 namespace Vibbe\Notification\Service;
 
 
-use Vibbe\Notification\Channels\NullChannel;
-use Vibbe\Notification\Interfaces\ChannelInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Vibbe\Notification\Channels\AbstractChannel;
+use Vibbe\Notification\Exceptions\ChannelNameIsReservedException;
 use Vibbe\Notification\Interfaces\Notifiable;
+use Vibbe\Notification\Interfaces\SupportsStamp;
 use Vibbe\Notification\Model\NotificationModel;
 
 class NotificationService
 {
-    /** @var ChannelInterface[] */
+    /** @var AbstractChannel[] */
     protected $availableChannels = [];
+    /**
+     * @var MessageBusInterface
+     */
+    private $messageBus;
+    /**
+     * @var ContainerInterface
+     */
+    private $container;
+
+    public function __construct(MessageBusInterface $messageBus)
+    {
+        $this->messageBus = $messageBus;
+    }
+
+    public function changeMessageBus(MessageBusInterface $messageBus)
+    {
+        $this->messageBus = $messageBus;
+    }
 
     /**
      * @param NotificationModel|NotificationModel[] $notifications
@@ -35,13 +56,14 @@ class NotificationService
                     continue;
                 }
 
-                $channelInstance = $this->getChannel($viaChannel);
                 $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel));
-
                 foreach ($messages as $message) {
-                    $channelInstance->notify($message);
+                    if($message instanceof SupportsStamp) {
+                        $this->messageBus->dispatch($message,$message->getStamps());
+                        continue;
+                    }
+                    $this->messageBus->dispatch($message);
                 }
-
             }
         }
 
@@ -67,14 +89,19 @@ class NotificationService
         return 'to'.ucfirst($channelName);
     }
 
-    private function getChannel(string $name): ChannelInterface
+    private function getChannel(string $name): ?AbstractChannel
     {
-        return $this->availableChannels[$name] ?? new NullChannel();
+        return $this->availableChannels[$name] ?? null;
     }
 
-    public function registerChannel(string $name, ChannelInterface $channel): self
+    public function registerChannel(string $name, AbstractChannel $channel): self
     {
         $this->availableChannels[$name] = $channel;
+        if(isset($this->availableChannels[$name])) {
+            throw new ChannelNameIsReservedException("Channel $name already exists");
+        }
+
+        return $this;
     }
 
     public function getAvailableChannels(): array
