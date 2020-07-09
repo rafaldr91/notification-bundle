@@ -4,35 +4,22 @@
 namespace Vibbe\Notification\Service;
 
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
-use Vibbe\Notification\Channels\AbstractChannel;
-use Vibbe\Notification\Exceptions\ChannelNameIsReservedException;
+use Vibbe\Notification\Interfaces\MessageProcessor;
 use Vibbe\Notification\Interfaces\Notifiable;
-use Vibbe\Notification\Interfaces\SupportsStamp;
 use Vibbe\Notification\Model\NotificationModel;
 
 class NotificationService
 {
-    /** @var AbstractChannel[] */
-    protected $availableChannels = [];
-    /**
-     * @var MessageBusInterface
-     */
-    private $messageBus;
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
 
-    public function __construct(MessageBusInterface $messageBus)
-    {
-        $this->messageBus = $messageBus;
-    }
+    /** @var MessageProcessor */
+    private $processor;
 
-    public function changeMessageBus(MessageBusInterface $messageBus)
+    /**
+     * @param MessageProcessor $processor
+     */
+    public function setMessageProcessor($processor)
     {
-        $this->messageBus = $messageBus;
+        $this->processor = $processor;
     }
 
     /**
@@ -58,15 +45,21 @@ class NotificationService
 
                 $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel));
                 foreach ($messages as $message) {
-                    if($message instanceof SupportsStamp) {
+                    $this->proceedMessage($message, $notificationModel, $viaChannel);
+                   /* if($message instanceof SupportsStamp) {
                         $this->messageBus->dispatch($message,$message->getStamps());
                         continue;
                     }
-                    $this->messageBus->dispatch($message);
+                    $this->messageBus->dispatch($message);*/
                 }
             }
         }
 
+    }
+
+    private function proceedMessage($message, $notificationModel, string $viaChannel)
+    {
+        $this->processor->process($message,$notificationModel,$viaChannel);
     }
 
     /**
@@ -89,23 +82,19 @@ class NotificationService
         return 'to'.ucfirst($channelName);
     }
 
-    private function getChannel(string $name): ?AbstractChannel
+  /*  private function getChannel(string $name): ?AbstractChannel
     {
         return $this->availableChannels[$name] ?? null;
     }
 
-    public function registerChannel(string $name, AbstractChannel $channel): self
+    public function registerChannel(AbstractChannel $channel): self
     {
-        $this->availableChannels[$name] = $channel;
-        if(isset($this->availableChannels[$name])) {
-            throw new ChannelNameIsReservedException("Channel $name already exists");
-        }
-
+        $this->availableChannels[] = $channel;
         return $this;
     }
 
     public function getAvailableChannels(): array
     {
         return $this->availableChannels;
-    }
+    }*/
 }
