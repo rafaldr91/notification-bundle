@@ -4,35 +4,24 @@
 namespace Vibbe\Notification\Service;
 
 
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
-use Vibbe\Notification\Channels\AbstractChannel;
-use Vibbe\Notification\Exceptions\ChannelNameIsReservedException;
+use Vibbe\Notification\Interfaces\MessageProcessor;
 use Vibbe\Notification\Interfaces\Notifiable;
-use Vibbe\Notification\Interfaces\SupportsStamp;
+use Vibbe\Notification\Interfaces\NotificationServiceInterface;
+use Vibbe\Notification\Model\AnonymousNotifiable;
 use Vibbe\Notification\Model\NotificationModel;
 
-class NotificationService
+class NotificationService implements NotificationServiceInterface
 {
-    /** @var AbstractChannel[] */
-    protected $availableChannels = [];
-    /**
-     * @var MessageBusInterface
-     */
-    private $messageBus;
-    /**
-     * @var ContainerInterface
-     */
-    private $container;
 
-    public function __construct(MessageBusInterface $messageBus)
-    {
-        $this->messageBus = $messageBus;
-    }
+    /** @var MessageProcessor */
+    private $processor;
 
-    public function changeMessageBus(MessageBusInterface $messageBus)
+    /**
+     * @param MessageProcessor $processor
+     */
+    public function setMessageProcessor($processor)
     {
-        $this->messageBus = $messageBus;
+        $this->processor = $processor;
     }
 
     /**
@@ -42,46 +31,69 @@ class NotificationService
      *
      * @return mixed
      */
-    public function send($notifications, $viaChannels, $notifiable)
+    public function send($notifications, $notifiable)
     {
         $notifications = (is_array($notifications)) ? $notifications: [$notifications];
-        $viaChannels   = (is_array($viaChannels)) ? $viaChannels : [$viaChannels];
         $notifiable    = (is_array($notifiable)) ? $notifiable : [$notifiable];
 
         /** @var NotificationModel $notificationModel */
         foreach ($notifications as $notificationModel) {
+            $viaChannels = $notificationModel->getSupportedChannels();
+
             foreach ($viaChannels as $viaChannel) {
-                if(!$notificationModel->isSupportChannelMapper($viaChannel))
-                {
+                if(in_array($viaChannel,$notificationModel->disabledChannels)) {
                     continue;
                 }
 
-                $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel));
+                $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel), $viaChannel);
                 foreach ($messages as $message) {
-                    if($message instanceof SupportsStamp) {
+                    $this->proceedMessage($message, $notificationModel, $viaChannel);
+                   /* if($message instanceof SupportsStamp) {
                         $this->messageBus->dispatch($message,$message->getStamps());
                         continue;
                     }
-                    $this->messageBus->dispatch($message);
+                    $this->messageBus->dispatch($message);*/
                 }
             }
         }
 
     }
 
+    private function proceedMessage($message, $notificationModel, string $channelSlug)
+    {
+        $this->processor->process($message,$notificationModel,$channelSlug);
+    }
+
     /**
      * @param NotificationModel $notificationModel
      * @param Notifiable[] $notifiableArray
      * @param string
+     * @param string $channelName
      * @return mixed[] $messages
      */
-    private function prepareMessages(NotificationModel $notificationModel, &$notifiableArray, string $transformerName): array
+    private function prepareMessages(NotificationModel $notificationModel, &$notifiableArray, string $transformerName, string $channelName): array
     {
         $messages = [];
         foreach ($notifiableArray as $notifiable) {
-            $messages[] = $notificationModel->{$transformerName}($notifiable);
+            $newNotifiable = $this->injectNotifiable($notificationModel,$channelName);
+            if($newNotifiable instanceof Notifiable){
+                $messages[] = $notificationModel->{$transformerName}($newNotifiable);
+            } else {
+                $messages[] = $notificationModel->{$transformerName}($notifiable);
+            }
         }
         return $messages;
+    }
+
+    private function injectNotifiable(NotificationModel $notificationModel, string $channelName): ?Notifiable
+    {
+        $parameters = $notificationModel->getParametersToOverride();
+        if(isset($parameters[$channelName]['route'])) {
+            $notifiable = new AnonymousNotifiable();
+            $notifiable->route($channelName,$parameters[$channelName]['route']);
+            return $notifiable;
+        }
+        return null;
     }
 
     private function getTransformerHandlerName(string $channelName): string
@@ -89,23 +101,19 @@ class NotificationService
         return 'to'.ucfirst($channelName);
     }
 
-    private function getChannel(string $name): ?AbstractChannel
+  /*  private function getChannel(string $name): ?AbstractChannel
     {
         return $this->availableChannels[$name] ?? null;
     }
 
-    public function registerChannel(string $name, AbstractChannel $channel): self
+    public function registerChannel(AbstractChannel $channel): self
     {
-        $this->availableChannels[$name] = $channel;
-        if(isset($this->availableChannels[$name])) {
-            throw new ChannelNameIsReservedException("Channel $name already exists");
-        }
-
+        $this->availableChannels[] = $channel;
         return $this;
     }
 
     public function getAvailableChannels(): array
     {
         return $this->availableChannels;
-    }
+    }*/
 }

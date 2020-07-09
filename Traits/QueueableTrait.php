@@ -6,16 +6,18 @@ namespace Vibbe\Notification\Traits;
 
 use Symfony\Component\Messenger\Stamp\DelayStamp;
 
-trait StampTrait
+trait QueueableTrait
 {
-    protected $stamps = [];
+    //protected $stamps = [];
 
     /**
      * @param int $time Time in ms
      * @return $this
      */
-    public function delay($time): self
+    /*public function delay($time): self
     {
         $this->stamps[] = new DelayStamp($time);
-    }
+    }*/
+
+
 }
