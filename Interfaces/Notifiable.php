@@ -6,5 +6,5 @@ namespace Vibbe\Notification\Interfaces;
 
 interface Notifiable
 {
-    public function routeNotificationFor(string $driver);
+    public function routeNotificationFor(string $channel);
 }

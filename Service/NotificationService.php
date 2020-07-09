@@ -6,6 +6,7 @@ namespace Vibbe\Notification\Service;
 
 use Vibbe\Notification\Interfaces\MessageProcessor;
 use Vibbe\Notification\Interfaces\Notifiable;
+use Vibbe\Notification\Model\AnonymousNotifiable;
 use Vibbe\Notification\Model\NotificationModel;
 
 class NotificationService
@@ -43,7 +44,7 @@ class NotificationService
                     continue;
                 }
 
-                $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel));
+                $messages = $this->prepareMessages($notificationModel,$notifiable,$this->getTransformerHandlerName($viaChannel), $viaChannel);
                 foreach ($messages as $message) {
                     $this->proceedMessage($message, $notificationModel, $viaChannel);
                    /* if($message instanceof SupportsStamp) {
@@ -66,15 +67,32 @@ class NotificationService
      * @param NotificationModel $notificationModel
      * @param Notifiable[] $notifiableArray
      * @param string
+     * @param string $channelName
      * @return mixed[] $messages
      */
-    private function prepareMessages(NotificationModel $notificationModel, &$notifiableArray, string $transformerName): array
+    private function prepareMessages(NotificationModel $notificationModel, &$notifiableArray, string $transformerName, string $channelName): array
     {
         $messages = [];
         foreach ($notifiableArray as $notifiable) {
-            $messages[] = $notificationModel->{$transformerName}($notifiable);
+            $newNotifiable = $this->injectNotifiable($notificationModel,$channelName);
+            if($newNotifiable instanceof Notifiable){
+                $messages[] = $notificationModel->{$transformerName}($newNotifiable);
+            } else {
+                $messages[] = $notificationModel->{$transformerName}($notifiable);
+            }
         }
         return $messages;
+    }
+
+    private function injectNotifiable(NotificationModel $notificationModel, string $channelName): ?Notifiable
+    {
+        $parameters = $notificationModel->getParametersToOverride();
+        if(isset($parameters[$channelName]['route'])) {
+            $notifiable = new AnonymousNotifiable();
+            $notifiable->route($channelName,$parameters[$channelName]['route']);
+            return $notifiable;
+        }
+        return null;
     }
 
     private function getTransformerHandlerName(string $channelName): string

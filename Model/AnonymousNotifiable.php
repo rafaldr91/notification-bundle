@@ -24,9 +24,9 @@ class AnonymousNotifiable implements Notifiable
         return $this;
     }
 
-    public function routeNotificationFor(string $driver)
+    public function routeNotificationFor(string $channel)
     {
-        return $this->routes[$driver] ?? null;
+        return $this->routes[$channel] ?? null;
     }
 
 }
