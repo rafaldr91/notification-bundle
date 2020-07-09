@@ -18,6 +18,8 @@ class NotificationModel implements NotificationInterface
 
     protected $parameters = [];
 
+    public $disabledChannels = [];
+
     /**
      * Call
      * @param $name
@@ -60,5 +62,28 @@ class NotificationModel implements NotificationInterface
     public function overrideParameters(array $parameters)
     {
         $this->parameters = $parameters;
+    }
+
+    public function dontSendVia($channelName): self
+    {
+        $channelName = (is_array($channelName)) ? $channelName : [$channelName];
+        $this->disabledChannels = $channelName;
+
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    final public function getSupportedChannels()
+    {
+        $methodNames = get_class_methods($this);
+        $supportedChannels = [];
+        foreach ($methodNames as $methodName) {
+            if(substr( $methodName, 0, 2 ) == 'to') {
+                $supportedChannels[] = strtolower(str_replace('to','',$methodName));
+            }
+        }
+        return $supportedChannels;
     }
 }

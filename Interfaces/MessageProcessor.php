@@ -11,8 +11,8 @@ interface MessageProcessor
     /**
      * @param $message
      * @param NotificationModel $notificationContext
-     * @param string $channelName
+     * @param string $channelSlug
      * @return mixed
      */
-    public function process($message,$notificationContext, string $channelName);
+    public function process($message,$notificationContext, string $channelSlug);
 }

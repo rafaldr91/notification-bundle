@@ -29,17 +29,17 @@ class NotificationService
      *
      * @return mixed
      */
-    public function send($notifications, $viaChannels, $notifiable)
+    public function send($notifications, $notifiable)
     {
         $notifications = (is_array($notifications)) ? $notifications: [$notifications];
-        $viaChannels   = (is_array($viaChannels)) ? $viaChannels : [$viaChannels];
         $notifiable    = (is_array($notifiable)) ? $notifiable : [$notifiable];
 
         /** @var NotificationModel $notificationModel */
         foreach ($notifications as $notificationModel) {
+            $viaChannels = $notificationModel->getSupportedChannels();
+
             foreach ($viaChannels as $viaChannel) {
-                if(!$notificationModel->isSupportChannelMapper($viaChannel))
-                {
+                if(in_array($viaChannel,$notificationModel->disabledChannels)) {
                     continue;
                 }
 
@@ -57,9 +57,9 @@ class NotificationService
 
     }
 
-    private function proceedMessage($message, $notificationModel, string $viaChannel)
+    private function proceedMessage($message, $notificationModel, string $channelSlug)
     {
-        $this->processor->process($message,$notificationModel,$viaChannel);
+        $this->processor->process($message,$notificationModel,$channelSlug);
     }
 
     /**
