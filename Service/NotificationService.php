@@ -26,7 +26,6 @@ class NotificationService implements NotificationServiceInterface
 
     /**
      * @param NotificationModel|NotificationModel[] $notifications
-     * @param string|string[] $viaChannels
      * @param Notifiable|Notifiable[] $notifiable
      *
      * @return mixed
