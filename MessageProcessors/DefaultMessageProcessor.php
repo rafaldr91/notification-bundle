@@ -4,17 +4,17 @@
 namespace Vibbe\Notification\MessageProcessors;
 
 
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Vibbe\Notification\Interfaces\MessageProcessor;
 
 class DefaultMessageProcessor implements MessageProcessor
 {
     /**
-     * @var EventDispatcher
+     * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 
-    public function __construct(EventDispatcher $eventDispatcher)
+    public function __construct(EventDispatcherInterface $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
     }
