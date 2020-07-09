@@ -6,8 +6,14 @@ services:
     # fetching services directly from the container via $container->get() won't work.
     # The best practice is to be explicit about your dependencies anyway.
 
-    vibbe.notifications:
-      class: Vibbe\Notification\Service\NotificationService
+  vibbe.notifications.processor:
+    class: 'Vibbe\Notification\MessageProcessors\DefaultMessageProcessor'
+    public: true
 
-    Vibbe\Notification\Interfaces\NotificationServiceInterface: '@vibbe.notifications'
+  vibbe.notifications:
+    class: Vibbe\Notification\Service\NotificationService
+    calls:
+      - [setMessageProcessor, ['@vibbe.notifications.processor']]
+
+  Vibbe\Notification\Interfaces\NotificationServiceInterface: '@vibbe.notifications'
 
