@@ -4,6 +4,8 @@
 namespace Vibbe\Notification\MessageProcessors;
 
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Vibbe\Notification\Interfaces\ChannelInterface;
 use Vibbe\Notification\Interfaces\MessageProcessor;
 use Vibbe\Notification\Model\NotificationModel;
@@ -15,16 +17,18 @@ class DefaultMessageProcessor implements MessageProcessor
      */
     private $channels = [];
 
-    public function process($message, $notificationContext, string $viaChannel)
+    /**
+     * @var EventDispatcher
+     */
+    private $eventDispatcher;
+
+    public function __construct(EventDispatcher $eventDispatcher)
     {
-        if(isset($this->channels[$viaChannel])) {
-            $channel = $this->channels[$viaChannel];
-            $channel($message);
-        }
+        $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function registerChannel(string $channelName, $handler)
+    public function process($message, $notificationContext, string $viaChannel)
     {
-        $this->channels[$channelName] = $handler;
+        $this->eventDispatcher->dispatch($message);
     }
 }

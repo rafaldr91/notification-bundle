@@ -6,10 +6,11 @@ namespace Vibbe\Notification\Service;
 
 use Vibbe\Notification\Interfaces\MessageProcessor;
 use Vibbe\Notification\Interfaces\Notifiable;
+use Vibbe\Notification\Interfaces\NotificationServiceInterface;
 use Vibbe\Notification\Model\AnonymousNotifiable;
 use Vibbe\Notification\Model\NotificationModel;
 
-class NotificationService
+class NotificationService implements NotificationServiceInterface
 {
 
     /** @var MessageProcessor */
