@@ -12,6 +12,7 @@ use Vibbe\Notification\Model\NotificationModel;
 
 class NotificationService implements NotificationServiceInterface
 {
+    private $filters = [];
 
     /** @var MessageProcessor */
     private $processor;
@@ -26,11 +27,11 @@ class NotificationService implements NotificationServiceInterface
 
     /**
      * @param NotificationModel|NotificationModel[] $notifications
-     * @param Notifiable|Notifiable[] $notifiable
+     * @param Notifiable|Notifiable[]|null $notifiable
      *
      * @return mixed
      */
-    public function send($notifications, $notifiable)
+    public function send($notifications, $notifiable = null)
     {
         $notifications = (is_array($notifications)) ? $notifications: [$notifications];
         $notifiable    = (is_array($notifiable)) ? $notifiable : [$notifiable];
@@ -73,6 +74,11 @@ class NotificationService implements NotificationServiceInterface
     private function prepareMessages(NotificationModel $notificationModel, &$notifiableArray, string $transformerName, string $channelName): array
     {
         $messages = [];
+        if(empty($notifiableArray)) {
+            $newNotifiable = $this->injectNotifiable($notificationModel,$channelName);
+            return [$notificationModel->{$transformerName}($newNotifiable)];
+        }
+
         foreach ($notifiableArray as $notifiable) {
             $newNotifiable = $this->injectNotifiable($notificationModel,$channelName);
             if($newNotifiable instanceof Notifiable){
@@ -98,6 +104,14 @@ class NotificationService implements NotificationServiceInterface
     private function getTransformerHandlerName(string $channelName): string
     {
         return 'to'.ucfirst($channelName);
+    }
+
+
+
+    public function addFilter($callable):self
+    {
+        $this->filters[] = $callable;
+        return $this;
     }
 
   /*  private function getChannel(string $name): ?AbstractChannel
