@@ -20,6 +20,8 @@ class NotificationModel implements NotificationInterface
 
     public $disabledChannels = [];
 
+    protected $locale;
+
     /**
      * Call
      * @param $name
@@ -46,6 +48,12 @@ class NotificationModel implements NotificationInterface
     public function route(string $channelName, $route): self
     {
         $this->parameters[$channelName]['route'] = $route;
+        return $this;
+    }
+
+    public function locale(string $locale):self
+    {
+        $this->locale = $locale;
         return $this;
     }
 
