@@ -21,7 +21,8 @@ class VibbeNotificationBundleExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration,$configs);
 
- 
+        $container->setParameter('vibbe_notification_bundle.transport_processor', $config['swift_mailer_service'] ?? 'vibbe.notifications.processor');
+
         $loader->load('services.yaml');
     }
 

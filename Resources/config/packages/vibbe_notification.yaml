@@ -1,2 +1,2 @@
 vibbe_notification:
-
+  transport_processor: 'vibbe.notifications.processor'
