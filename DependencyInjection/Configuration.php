@@ -11,7 +11,7 @@ class Configuration implements ConfigurationInterface
 {
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder('vibbe_notification');
+        $treeBuilder = new TreeBuilder('vibbe_notification_bundle');
 
         $treeBuilder
             ->getRootNode()
