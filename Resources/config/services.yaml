@@ -13,7 +13,7 @@ services:
   vibbe.notifications:
     class: Vibbe\Notification\Service\NotificationService
     calls:
-      - [setMessageProcessor, ['@vibbe.notifications.processor']]
+      - [setMessageProcessor, ['@=service(parameter("vibbe_notification_bundle.transport_processor"))']]
 
   Vibbe\Notification\Interfaces\NotificationServiceInterface: '@vibbe.notifications'
 
