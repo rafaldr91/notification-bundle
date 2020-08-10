@@ -16,6 +16,9 @@ class Configuration implements ConfigurationInterface
         $treeBuilder
             ->getRootNode()
                 ->children()
+                    ->scalarNode('mail_driver')
+                        ->defaultValue('vibbe.notifications.processor')
+                    ->end()
                 ->end()
             ->end();
 
