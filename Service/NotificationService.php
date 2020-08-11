@@ -41,6 +41,9 @@ class NotificationService implements NotificationServiceInterface
             $viaChannels = $notificationModel->getSupportedChannels();
 
             foreach ($viaChannels as $viaChannel) {
+                if(!empty($notificationModel->sendOnlyVia) && !in_array($viaChannel,$notificationModel->sendOnlyVia)) {
+                    continue;
+                }
                 if(in_array($viaChannel,$notificationModel->disabledChannels)) {
                     continue;
                 }
