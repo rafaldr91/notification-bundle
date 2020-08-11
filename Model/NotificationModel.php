@@ -19,6 +19,7 @@ class NotificationModel implements NotificationInterface
     protected $parameters = [];
 
     public $disabledChannels = [];
+    public $sendOnlyVia      = [];
 
     protected $locale;
 
@@ -72,6 +73,22 @@ class NotificationModel implements NotificationInterface
         $this->parameters = $parameters;
     }
 
+    /**
+     * @param string|array $channelName
+     * @return $this
+     */
+    public function sendOnlyVia($channelName): self
+    {
+        $channelName = (is_array($channelName)) ? $channelName : [$channelName];
+        $this->sendOnlyVia = $channelName;
+
+        return $this;
+    }
+
+    /**
+     * @param string|array $channelName
+     * @return $this
+     */
     public function dontSendVia($channelName): self
     {
         $channelName = (is_array($channelName)) ? $channelName : [$channelName];
