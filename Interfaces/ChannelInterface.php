@@ -8,5 +8,5 @@ use Vibbe\Notification\Model\NotificationModel;
 
 interface ChannelInterface
 {
-    public function __invoke($message);
+    public function __invoke(Message $message);
 }
