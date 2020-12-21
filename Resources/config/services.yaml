@@ -10,6 +10,11 @@ services:
     class: 'Vibbe\Notification\MessageProcessors\DefaultMessageProcessor'
     public: true
 
+  vibbe.notifications.bus_message_processor:
+    class: 'Vibbe\Notification\MessageProcessors\BusMessageProcessor'
+    arguments: ["@vibbe.notifications.processor"]
+    public: true
+
   vibbe.notifications:
     class: Vibbe\Notification\Service\NotificationService
     calls:

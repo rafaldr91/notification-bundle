@@ -1,0 +1,30 @@
+framework:
+    messenger:
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        # failure_transport: failed
+
+        transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
+            async_priority_low:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: low
+
+            async_priority_medium:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: medium
+            async_priority_high:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    queue_name: high
+#            sync: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+#            failed: 'doctrine://default?queue_name=failed'
+            sync: 'sync://'
+
+        routing:
+            'Vibbe\Notification\Interfaces\AsyncLowPriorityMessage': async_priority_low
+            'Vibbe\Notification\Interfaces\AsyncMediumPriorityMessage': async_priority_medium
+            'Vibbe\Notification\Interfaces\AsyncHighPriorityMessage': async_priority_high
+            'Vibbe\Notification\Interfaces\SyncMessage': sync
