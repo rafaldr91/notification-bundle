@@ -11,7 +11,7 @@
   "repositories": [
     {
       "type": "vcs",
-      "url": "https://git.vibbe.pl/DominikPn/vibbe-notification-bundle"
+      "url": "https://github.com/rafaldr91/notification-bundle.git"
     }
   ],
   "require": {
