@@ -8,12 +8,6 @@
       "email": "dominik.p@vibbe.pl"
     }
   ],
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/rafaldr91/notification-bundle.git"
-    }
-  ],
   "require": {
     "php" : ">=7.2",
     "symfony/config": "^3.4|^4.3|^5.0",
